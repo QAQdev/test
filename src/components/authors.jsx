@@ -20,10 +20,18 @@ export default class Authors extends React.Component {
           {this.props.authors.map((author, idx) => {
             return (
               <span className={authorClass} key={'author-' + idx}>
-                <a target="_blank" className="uk-link-toggle" href={author.url}>
+                <a
+                  target="_blank"
+                  className="uk-link-toggle uk-text-semibold"
+                  href={author.url}
+                >
                   {author.name}
                 </a>
-                <sup>{author.affiliation.join(',')}</sup>
+                <sup>
+                  {[...author.affiliation, ...(author.superscript || [])].join(
+                    ','
+                  )}
+                </sup>
               </span>
             );
           })}

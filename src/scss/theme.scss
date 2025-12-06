@@ -50,3 +50,12 @@ $base-focus-outline-style: none;
 @import 'uikit/src/scss/mixins-theme.scss';
 @import 'uikit/src/scss/uikit.scss';
 @import 'normalize.css/normalize.css';
+
+// Custom font weight utilities (compatible with UIkit)
+.uk-text-medium {
+  font-weight: 500 !important;
+}
+
+.uk-text-semibold {
+  font-weight: 600 !important;
+}

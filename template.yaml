@@ -1,38 +1,52 @@
 theme: default # default || classic || dark
-organization: Pixel Genius Labs
-twitter: '@denkivvakame'
-title: Academic Project Page Template
-journal: "AAAA'24"
+# organization: Pixel Genius Labs
+# twitter: '@denkivvakame'
+title: 'TwinFlow: Realizing One-step Generation on Large Models with Self-adversarial Flows'
+# journal: "AAAA'24"
 resources:
-  paper: # https://openreview.net/
+  # paper: https://openreview.net/pdf?id=fBc9v8CVvm
   arxiv: https://arxiv.org
-  code: https://github.com/denkiwakame/academic-project-template
-  video: https://www.youtube.com/embed/onbnb_D1wC8?si=xJczUv716Lt5aO4l&amp;start=1150
-  demo: https://colab.research.google.com/
-  huggingface: https://huggingface.co/
-description: academic projectpage template that supports markdown and KaTeX
+  code: https://github.com/inclusionAI/TwinFlow
+  # video: https://www.youtube.com/embed/onbnb_D1wC8?si=xJczUv716Lt5aO4l&amp;start=1150
+  # demo: https://colab.research.google.com/
+  huggingface: https://huggingface.co/inclusionAI/TwinFlow
+
+description: 'We propose a simple yet effective framework for training one-step generative models without the demand of pretrained models for distillation or standard adversarial training, which is helpful when training large few-step generative models.'
 
 image: https://denkiwakame.github.io/academic-project-template/teaser.jpg
 url: https://denkiwakame.github.io/academic-project-template
 speakerdeck: # speakerdeck slide ID
 authors:
-  - name: Wakame Denki*
-    affiliation: [1, 2]
-    url: http://denkiwakame.github.io/
+  - name: Zhenglin Cheng
+    affiliation: [1, 2, 3, 4]
+    url: https://zhenglin-cheng.com/
     position: intern
-  - name: Jane Doe
+    superscript: ['*']
+  - name: Peng Sun
+    affiliation: [1, 3, 4]
+    position: intern
+    superscript: ['*']
+    url: https://scholar.google.com/citations?user=-8XvRRIAAAAJ&hl=en
+  - name: Jianguo Li
     affiliation: [1]
-    position: Researcher
-    url: https://thispersondoesnotexist.com/
-  - name: John Smith
-    affiliation: [1]
-    position: Researcher
-    url: https://thispersondoesnotexist.com/
+    # superscript: ['†']
+    position: tech director
+    url: https://sites.google.com/site/leeplus/
+  - name: Tao Lin
+    affiliation: [3, 1]
+    superscript: ['†']
+    position: professor
+    url: https://lins-lab.github.io/
 affiliations:
-  - Pixel Genius Labs
-  - NeuroNauts Academy
+  - Inclusion AI
+  - Shanghai Innovation Institute
+  - Westlake University
+  - Zhejiang University
 meta:
-  - '*work done while she was interning at Pixel Genius Lab.'
+  - '*Equal contribution.'
+  - 'ㅤㅤㅤㅤㅤㅤㅤㅤ'
+  - '†Corresponding authors.'
+
 bibtex: >
   @article{doe2024superai,
     author    = {Jane Doe and John Smith},
@@ -49,11 +63,16 @@ bibtex: >
     note      = {This paper sets the benchmark for future AI research and applications.}
   }
 
-teaser: teaser.jpg
+teaser: demov2_01.png
 abstract: |
-  This is a versatile template designed to satisfy your research project page needs, all while harnessing the power of 🎨**UIKit** and ⚛ **React**. Built on the foundations of simplicity and flexibility, this template allows you to focus on expressing your ideas without the hassle of directly handling CSS—thanks to customizable SASS variables.
-  With markdown as your canvas and $\KaTeX$ for precise equations, crafting clear and engaging project page becomes effortless. Whether you're unraveling complex theories or presenting your findings, this template aims to support your scholarly endeavors with grace and ease.
-  *Need to edit HTML directly?* Fear not! In addition to markdown, you can also directly write HTML with ease. Feel empowered to craft your content exactly as you envision it, whether through markdown's simplicity or the precision of HTML.
+  Recent advances in large multi-modal generative models have demonstrated impressive capabilities in multi-modal generation, including image and video generation.
+  These models are typically built upon multi-step frameworks like diffusion and flow matching, which inherently limits their inference efficiency, requiring 40-100 Number of Function Evaluations (NFEs).
+  While various few-step methods aim to accelerate the inference, existing solutions have clear limitations. Prominent distillation-based methods, such as progressive and consistency distillation, either require an iterative distillation procedure or show significant degradation at very few steps (< 4-NFE).
+  Meanwhile, integrating adversarial training into distillation (e.g., DMD/DMD2 and SANA-Sprint) to enhance performance introduces training instability, added complexity, and high GPU memory overhead due to the auxiliary trained models.
+  To this end, we propose TwinFlow, a simple yet effective framework for training 1-step generative models that bypasses the need for fixed pretrained teacher models and avoids standard adversarial networks during training, making it ideal for building large-scale, efficient models.
+  On text-to-image tasks, our method achieves a GenEval score of 0.83 in 1-NFE, outperforming strong baselines like SANA-Sprint (a GAN loss-based framework) and RCGM (a consistency-based framework).
+  **Notably, we demonstrate the scalability of TwinFlow by *full-parameter training* on Qwen-Image-20B and transform it into an efficient few-step generator.**
+  With just 1-NFE, our approach matches the performance of the original 100-NFE model on both the GenEval and DPG-Bench benchmarks, reducing computational cost by 100× with minor quality degradation.
 
 body:
   - title: Media examples

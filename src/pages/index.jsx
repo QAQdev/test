@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import Header from '@/components/header';
 import Overview from '@/components/overview';
 import Video from '@/components/video';
+import SpeedComparison from '@/components/speed-comparison';
 import Body from '@/components/body';
 import Footer from '@/components/footer';
 import Citation from '@/components/citation';
@@ -118,12 +119,17 @@ class Template extends React.Component {
           resources={data.resources}
           theme={data.theme}
         />
+
         <div className="uk-container uk-container-small">
+          {/* 移动到这里：Header 之下，Overview (Abstract) 之上 */}
+          <SpeedComparison />
+
           <Overview
             abstract={data.abstract}
             teaser={data.teaser}
             description={data.description}
           />
+
           <Video video={data.resources.video} />
           <SpeakerDeck dataId={data.speakerdeck} />
           <Body body={data.body} />
