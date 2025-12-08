@@ -127,6 +127,7 @@ class Template extends React.Component {
           <Overview
             abstract={data.abstract}
             teaser={data.teaser}
+            teaserCaption={data.teaser_caption}
             description={data.description}
           />
 

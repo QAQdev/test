@@ -46,8 +46,10 @@ class ResourceBtn extends React.Component {
     const sClass = 'uk-margin-small-left uk-margin-small-right uk-text-bold';
     const FaIcon = this.icons[this.props.title];
     const iTitle =
-      this.props.title == 'huggingface' && this.state.isMobile
-        ? ' hf '
+      this.props.title === 'huggingface'
+        ? this.state.isMobile
+          ? ' hf '
+          : 'huggingface (Model)'
         : this.props.title;
     return (
       <>

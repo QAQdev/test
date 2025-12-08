@@ -59,3 +59,8 @@ $base-focus-outline-style: none;
 .uk-text-semibold {
   font-weight: 600 !important;
 }
+
+p {
+  text-align: justify;
+  hyphens: auto;
+}

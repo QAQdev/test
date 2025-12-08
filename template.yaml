@@ -5,7 +5,7 @@ title: 'TwinFlow: Realizing One-step Generation on Large Models with Self-advers
 # journal: "AAAA'24"
 resources:
   # paper: https://openreview.net/pdf?id=fBc9v8CVvm
-  arxiv: https://arxiv.org
+  arxiv: https://arxiv.org/abs/2512.05150
   code: https://github.com/inclusionAI/TwinFlow
   # video: https://www.youtube.com/embed/onbnb_D1wC8?si=xJczUv716Lt5aO4l&amp;start=1150
   # demo: https://colab.research.google.com/
@@ -13,8 +13,8 @@ resources:
 
 description: 'We propose a simple yet effective framework for training one-step generative models without the demand of pretrained models for distillation or standard adversarial training, which is helpful when training large few-step generative models.'
 
-image: https://denkiwakame.github.io/academic-project-template/teaser.jpg
-url: https://denkiwakame.github.io/academic-project-template
+# image: https://denkiwakame.github.io/academic-project-template/teaser.jpg
+# url: https://denkiwakame.github.io/academic-project-template
 speakerdeck: # speakerdeck slide ID
 authors:
   - name: Zhenglin Cheng
@@ -48,22 +48,15 @@ meta:
   - '†Corresponding authors.'
 
 bibtex: >
-  @article{doe2024superai,
-    author    = {Jane Doe and John Smith},
-    title     = {Unleashing the Power of Super AI: Transforming the Future of Technology},
-    journal   = {Journal of Superintelligent Systems},
-    year      = {2024},
-    volume    = {99},
-    number    = {1},
-    pages     = {1-42},
-    month     = {January},
-    keywords  = {Super AI, Machine Learning, Artificial Intelligence, Technological Innovation},
-    doi       = {10.9999/jsis.2024.001},
-    url       = {https://www.example.com/superai-article},
-    note      = {This paper sets the benchmark for future AI research and applications.}
+  @article{cheng2025twinflow,
+    title={TwinFlow: Realizing One-step Generation on Large Models with Self-adversarial Flows},
+    author={Cheng, Zhenglin and Sun, Peng and Li, Jianguo and Lin, Tao},
+    journal={arXiv preprint arXiv:2512.05150},
+    year={2025}
   }
 
-teaser: demov2_01.png
+teaser: hybrid_grid_layout_v4.jpg
+teaser_caption: '2-NFE visualization of TwinFlow-Qwen-Image.'
 abstract: |
   Recent advances in large multi-modal generative models have demonstrated impressive capabilities in multi-modal generation, including image and video generation.
   These models are typically built upon multi-step frameworks like diffusion and flow matching, which inherently limits their inference efficiency, requiring 40-100 Number of Function Evaluations (NFEs).
@@ -75,15 +68,64 @@ abstract: |
   With just 1-NFE, our approach matches the performance of the original 100-NFE model on both the GenEval and DPG-Bench benchmarks, reducing computational cost by 100× with minor quality degradation.
 
 body:
-  - title: Media examples
+  - title: Overview
+  - text: |
+      ### **The Trilemma of Few-Step Generation**
+      Recent large multi-modal models have achieved stunning generative capabilities, but they come at a steep cost: inference efficiency.
+      Standard diffusion and flow-matching models typically require **50-100 NFEs** to generate a single image.
+
+      While researchers have raced to solve this with few-step distillation, existing solutions force a compromise between ***complexity, stability, and quality***.
+      As shown below, current SoTA methods rely heavily on "baggage"—auxiliary discriminators/fake scores or frozen teacher models, which inflate memory costs and destabilize training.
+
+      | **Method** | **Generation Type** | **Requires Auxiliary Trained Model? (e.g., Discriminator, fake score)** | **Requires Frozen Teacher Model?** | **Major Drawback** |
+      |---------------------|---------------------|-----------------------------------------------|------------------------|---------------------|
+      | GANs                | 1-step              | 1                                                     | 0                            | Unstable training dynamics |
+      | Consistency Models  | 1-step / Few-step   | 0                                                     | 1                            | Quality degradation at < 4 steps |
+      | DMD / DMD2          | 1-step / Few-step   | 1-2                                                   | 1                            | High GPU Memory, Complex pipeline |
+      | **TwinFlow (Ours)** | **1-step / Few-step**   | **0**                                                     | **0**                            | **-** |
+
+      ### **TwinFlow: Simplicity via Self-Adversarial Flows**
+      <div class="uk-align-right@m uk-margin-medium-left uk-width-large@m uk-text-center">
+        <img src="twinflow.png" alt="TwinFlow Architecture" class="uk-responsive-width uk-border-rounded">
+        <div class="uk-text-meta uk-margin-small-top">The TwinFlow Architecture.</div>
+      </div>
+
+      We introduce **TwinFlow**, a framework that realizes high-quality 1-step and few-step generation without the pipeline bloat.
+
+      Instead of relying on external discriminators or frozen teachers, TwinFlow creates an internal "twin trajectory".
+      By extending the time interval to $t \in [-1, 1]$, we utilize the negative time branch to map noise to "fake" data, creating a self-adversarial signal directly within the model.
+
+      Then, the model can rectify itself by minimizing the difference of the velocity fields between real trajectory and fake trajectory, i.e. the $\Delta_\mathrm{v}$.
+      The rectification performs distribution matching as velocity matching, which gradually transforms the model into a 1-step/few-step generator.
+
+      **Key Advantages:**
+        - ***One-model Simplicity.*** We eliminate the need for any auxiliary networks. The model learns to rectify its own flow field, acting as the generator, fake/real score.
+        No extra GPU memory is wasted on frozen teachers or discriminators during training.
+        - ***Scalability on Large Models.*** TwinFlow is easy to scale on **20B full-parameter training** due to the one-model simplicity.
+        In contrast, methods like VSD, SiD, and DMD/DMD2 require maintaining three separate models for distillation, which not only significantly increases memory consumption—often leading OOM, but also introduces substantial complexity when scaling to large-scale training regimes.
+
+      ### **Scalability: Unlocking Full-Parameter Training on Qwen-Image-20B**
+      The true power of TwinFlow's "One-model" efficiency is demonstrated by its scalability.
+      Prior methods like VSD/SiD/DMD, DMD2 is hard to scale to massive models because loading multiple model (Fake score + Teacher (Real score) + Generator, Discriminator (Optional)) causes OOM.
+
+      TwinFlow is the ***first framework*** to successfully enable **full-parameter 1-step/few-step training** on the massive **Qwen-Image-20B** model, reducing inference cost by nearly 100× while maintaining strong generation quality.
+
+      | **Method**               | **Scale** | **Memory Tradeoffs** | **NFE ⬇️** | **GenEval ⬆️** | **DPG-Bench ⬆️** | **WISE ⬆️** |
+      |--------------------------|-----------|---------------------|------------|----------------|------------------|  ---------- |
+      | Qwen-Image (Original)    | 20B       | -                   | 50×2       | 0.87           | 88.32            | 0.62 |
+      | VSD / DMD / SiD          | Generator (20B), Teacher (20B), Fake score (20B)       | OOM (>80GB)         | -          | -              | -                | - | 
+      | VSD          | Generator (20B), Teacher (20B), Fake score (LoRA, ~420M)       | Fake score as LoRA & Small batch size         | 1          | 0.67              | 84.44                 | 0.22 |
+      | SiD          | Generator (20B), Teacher (20B), Fake score (LoRA, ~420M)       | Fake score as LoRA & Small batch size        | 1          | 0.77              | 87.05                | 0.42 |
+      | DMD          | Generator (20B), Teacher (20B), Fake score (LoRA, ~420M)       | Fake score as LoRA & Small batch size         | 1          | 0.81              | 84.31                | 0.47 |
+      | sCM (JVP-free)           | 20B       | JVP through finite differences / Special JVP kernels            | 8          | 0.60           | 85.54            | 0.45 |
+      | MeanFlow  (JVP-free)     | 20B       | JVP through finite differences / Special JVP kernels            | 8          | 0.49 | 83.81 | 0.37 |
+      | **TwinFlow (longer training)**          | **20B**       | **No tradeoffs**            | **1**          | **0.89**           | **87.54**            | **0.57** |
+      | **TwinFlow (longer training)**          | **20B**       | **No tradeoffs**            | **2**          | **0.90**           | **87.80**            | **0.59** |
+
+  - title: More examples
     text: |
       ### Mediafile Path
       Files in `public/` can be referenced directly: `<img src="001.jpg" />`
-
-      ### UIKit Components
-      This template supports all UIKit components.
-      To check available components, refer to the [UIKit documentation](https://getuikit.com/docs).
-      [Slideshow](https://getuikit.com/docs/slideshow) example
 
       </div>
       <div uk-slideshow="animation: push">
@@ -105,250 +147,14 @@ body:
         <ul class="uk-slideshow-nav uk-dotnav uk-flex-center uk-margin"></ul>
       </div>
 
-      [Grid system](https://getuikit.com/docs/grid) example
-      <div class="uk-grid-small uk-child-width-1-2 uk-child-width-1-3@m" uk-grid>
-        <div>
-          <img src="001.jpg">
-          <span class="uk-text-meta">Fig1 - caption example</figcaption>
-        </div>
-        <div>
-          <img src="002.jpg" />
-          <span class="uk-text-meta">Fig2 - caption example</figcaption>
-        </div>
-        <div>
-          <img src="003.jpg">
-          <span class="uk-text-meta">Fig3 - caption example</figcaption>
-        </div>
-      </div>
-
-      [Video](https://getuikit.com/docs/video) and [Slider](https://getuikit.com/docs/slider) component example
-      <div uk-slider>
-        <div class="uk-slider-items uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-grid">
-          <div>
-            <video
-              src="https://yootheme.com/site/images/media/yootheme-pro.mp4"
-              loop
-              muted
-              uk-video="autoplay:inview"
-              />
-          </div>
-          <div>
-            <video
-              src="https://yootheme.com/site/images/media/yootheme-pro.mp4"
-              loop
-              muted
-              uk-video="autoplay:inview"
-              />
-          </div>
-          <div>
-            <video
-              src="https://yootheme.com/site/images/media/yootheme-pro.mp4"
-              loop
-              muted
-              uk-video="autoplay:inview"
-              />
-          </div>
-        </div>
-        <div class="uk-flex uk-flex-center uk-margin-small">
-          <a class="uk-icon-button" href uk-slidenav-previous uk-slider-item="previous"></a>
-          <a class="uk-icon-button uk-margin-small-left" href uk-slidenav-next uk-slider-item="next"></a>
-        </div>
-      </div>
-
-      [Image-Comparison-Slider](https://img-comparison-slider.sneas.io) example
-      <img-comparison-slider>
-        <img slot="first" src="002.jpg" />
-        <img slot="second" src="004.jpg" />
-      </img-comparison-slider>
-
-  - title: Markdown examples
-    text: |
-      Here's our demo text showcasing the power of markdown and KaTeX integration!
-      Markdown allows you to easily format text using simple syntax.
-      - **bold**
-      - *italic*
-      - `inline code`.
-
-      You can also create headings of various levels:
-      # Heading Level 1
-      ## Heading Level 2
-      ### Heading Level 3
-      #### Heading Level 4
-      Markdown allows you to create tables like the following:
-      ### Fictitious AI Benchmark Results
-      | **Model Name** | **Accuracy (%)** ⬆️| **Inference Time (ms)** ⬇️|
-      |---------------------|--------------|---------------------|
-      | TransGPT-XT         | 96.3         | $\infty$                 |
-      | GigaBERT Prime      | 94.7         | 9.5                 |
-      | MegaLSTM-Pro        | 92.5         | 10.1                |
-      | UltraTransformer    | 97.1         | 7.8                 |
-      | **QuantumDNN-ALPHA**    | 95.8         | 8.5             |
-
-      Of course, you can also directly write tables in HTML if needed. For more details, refer to the [UIKit Table documentation](https://getuikit.com/docs/table).
-
-      <div class="uk-overflow-auto uk-width-1-1">
-        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
-          <thead>
-            <tr>
-              <th>Model Name</th>
-              <th>Accuracy (%)</th>
-              <th>Inference Time (ms)</th>
-              <th>Memory Usage (MB)</th>
-              <th>Training Time (hours)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>TransGPT-XT<br/>GigaBERT Prime</td>
-              <td>96.3<br/>94.7</td>
-              <td>8.2<br/>9.5</td>
-              <td>1200<br/>1100</td>
-              <td>36<br/>48</td>
-            </tr>
-            <tr>
-              <td>MegaLSTM-Pro<br/>UltraTransformer</td>
-              <td>92.5<br/>97.1</td>
-              <td>10.1<br/>7.8</td>
-              <td>1050<br/>1300</td>
-              <td>56<br/>42</td>
-            </tr>
-            <tr class="uk-active">
-              <td>QuantumDNN-ALPHA</td>
-              <td>95.8</td>
-              <td>8.5</td>
-              <td>1250</td>
-              <td>50</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-  - title: Codeblock examples
-    text: |
-      Code blocks are automatically highlighted by [highlight.js](https://highlightjs.org/examples). To change the theme, import a preferred `.css`.
-
-      ```javascript
-      // src/components/body.jsx
-      import { markedHighlight } from "marked-highlight";
-      import hljs from 'highlight.js';
-      //import 'highlight.js/styles/base16/gruvbox-dark-hard.css';
-      import 'highlight.js/styles/base16/github.css';
-
-      const renderer = new marked.Renderer();
-      renderer.code = (code, language) => {
-        return `<pre class="hljs"><code class="hljs language-${language}">${code}</code></pre>`
-      }
-      ```
-  - title: KaTeX examples
-    text: >
-      $\KaTeX$ enables you to write mathematical expressions beautifully within your text (e.g. $\alpha$, $\beta$, $\gamma$ ).
-      $$ax^2 + bx + c = 0$$
-      $$ \int \oint \sum \prod $$
-      $$ \begin{CD} A @>a>> B \\ @VbVV @AAcA \\ C @= D \end{CD} $$
-      [KaTeX supports a wide range of mathematical symbols and equations](https://katex.org/docs/support_table.html), ensuring your technical content is both clear and visually appealing.
-      With markdown for text formatting and KaTeX for mathematical expressions, our template empowers you to communicate complex ideas effectively. Whether you're writing a scientific paper or a technical blog post, harnessing these tools will elevate your content and engage your readers.
-
-  - title: Color Palette
-    text: |
-      To customize the theme, edit UIkit variables in [theme.scss](https://github.com/denkiwakame/academic-project-template/blob/project-page/src/scss/theme.scss). Material Design colors are available as variables (e.g. `$clr-blue-50` ). For the full set of colors, please visit [Material Design Color System](https://m2.material.io/design/color/the-color-system.html#tools-for-picking-colors).
-
-      <div class="uk-overflow-auto">
-      <table class="uk-table uk-table-small uk-text-small uk-table-divider">
-        <thead>
-          <tr>
-            <th>50</th>
-            <th>100</th>
-            <th>200</th>
-            <th>300</th>
-            <th>400</th>
-            <th>500</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td bgcolor="#FFEBEE">$clr-red-50</td>
-            <td bgcolor="#FFCCD2">$clr-red-100</td>
-            <td bgcolor="#EF9A9A">$clr-red-200</td>
-            <td bgcolor="#E57373">$clr-red-300</td>
-            <td bgcolor="#FF5350">$clr-red-400</td>
-            <td bgcolor="#F44336">$clr-red-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#FCE4EC">$clr-pink-50</td>
-            <td bgcolor="#F8BBD0">$clr-pink-100</td>
-            <td bgcolor="#F48FB1">$clr-pink-200</td>
-            <td bgcolor="#F06292">$clr-pink-300</td>
-            <td bgcolor="#EC407A">$clr-pink-400</td>
-            <td bgcolor="#E91E63">$clr-pink-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#E8EAF6">$clr-indigo-50</td>
-            <td bgcolor="#C5CAE9">$clr-indigo-100</td>
-            <td bgcolor="#9FA8DA">$clr-indigo-200</td>
-            <td bgcolor="#7986CB">$clr-indigo-300</td>
-            <td bgcolor="#5C6BC0">$clr-indigo-400</td>
-            <td bgcolor="#3F51B5">$clr-indigo-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#E0F7FA">$clr-cyan-50</td>
-            <td bgcolor="#B2EBF2">$clr-cyan-100</td>
-            <td bgcolor="#80DEEA">$clr-cyan-200</td>
-            <td bgcolor="#4DD0E1">$clr-cyan-300</td>
-            <td bgcolor="#26C6DA">$clr-cyan-400</td>
-            <td bgcolor="#00BCD4">$clr-cyan-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#E0F2F1">$clr-teal-50</td>
-            <td bgcolor="#B2DFDB">$clr-teal-100</td>
-            <td bgcolor="#80CBC4">$clr-teal-200</td>
-            <td bgcolor="#4DB6AC">$clr-teal-300</td>
-            <td bgcolor="#26A69A">$clr-teal-400</td>
-            <td bgcolor="#009688">$clr-teal-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#FFF8E1">$clr-amber-50</td>
-            <td bgcolor="#FFECB3">$clr-amber-100</td>
-            <td bgcolor="#FFE082">$clr-amber-200</td>
-            <td bgcolor="#FFD54F">$clr-amber-300</td>
-            <td bgcolor="#FFCA28">$clr-amber-400</td>
-            <td bgcolor="#FFC107">$clr-amber-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#F9FBE7">$clr-lime-50</td>
-            <td bgcolor="#F0F4C3">$clr-lime-100</td>
-            <td bgcolor="#E6EE9C">$clr-lime-200</td>
-            <td bgcolor="#DCE775">$clr-lime-300</td>
-            <td bgcolor="#D4E157">$clr-lime-400</td>
-            <td bgcolor="#CDDC39">$clr-lime-500</td>
-          </tr>
-          <tr>
-            <td bgcolor="#FAFAFA">$clr-grey-50</td>
-            <td bgcolor="#F5F5F5">$clr-grey-100</td>
-            <td bgcolor="#EEEEEE">$clr-grey-200</td>
-            <td bgcolor="#E0E0E0">$clr-grey-300</td>
-            <td bgcolor="#BDBDBD">$clr-grey-400</td>
-            <td bgcolor="#9E9E9E">$clr-grey-500</td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-  - title: License
-    text: |
-      This template is provided under the [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) license.
-      You are free to use and modify the code in your project as long as you include a link to this [GitHub repository](https://github.com/denkiwakame/academic-project-template) in your footer.
-
 projects: # relevant projects
-  - title: Relevant Project I
-    description: abstract text
-    img: https://getuikit.com/docs/images/light.jpg
-    journal: "ABCD'23"
-    url: https://denkiwakame.github.io/academic-project-template/
-  - title: Relevant Project II
-    description: abstract text
-    img: 001.jpg
-    journal: "EFGH'22"
-    url: https://denkiwakame.github.io/academic-project-template/
-  - title: Relevant Project III
-    description: abstract text
-    img: 002.jpg
-    journal: "IJKL'22"
-    url: https://denkiwakame.github.io/academic-project-template/
+  - title: 'RCGM: Any-step Generation via N-th Order Recursive Consistent Velocity Field Estimation'
+    description: Peng Sun, Tao Lin
+    img: rcgm.png
+    journal: "arXiv'25"
+    url: https://github.com/LINs-lab/RCGM
+  - title: 'UCGM: Unified Continuous Generative Models'
+    description: Peng Sun, Yi Jiang, Tao Lin
+    img: ucgm.png
+    journal: "arXiv'25"
+    url: https://arxiv.org/abs/2505.07447

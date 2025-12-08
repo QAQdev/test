@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaPlay, FaRedo, FaTachometerAlt } from 'react-icons/fa';
+import { FaPlay, FaRedo, FaCogs } from 'react-icons/fa';
 
 // 配置常量：5x5 网格
-const GRID_ROWS = 5;
-const GRID_COLS = 5;
+const GRID_ROWS = 2;
+const GRID_COLS = 2;
 const TOTAL_IMAGES = GRID_ROWS * GRID_COLS;
+
+// 默认快进倍速
+const DEFAULT_SPEED_MULTIPLIER = 10;
+
+// 速度配置 (秒/张)
+const SPEEDS = {
+  QWEN: 36.55,
+  OURS_2_NFE: 1.21,
+  OURS_4_NFE: 2.32,
+};
 
 const ModelGrid = ({
   title,
@@ -29,7 +39,7 @@ const ModelGrid = ({
     elapsed: 0,
   });
 
-  // 追踪 props 的最新值，避免 useEffect 依赖变化导致重置
+  // 追踪 props 的最新值
   const multiplierRef = useRef(speedMultiplier);
   const isRunningRef = useRef(isRunning);
 
@@ -88,13 +98,15 @@ const ModelGrid = ({
         return;
       }
 
-      // 更新总耗时
+      // 更新总耗时 (显示用，基于真实流逝时间 * 倍速)
       const newElapsed = elapsed + delta * currentMultiplier;
       stateRef.current.elapsed = newElapsed;
       setElapsedTime(newElapsed);
 
       // 计算当前图片进度
+      // 目标时间 (ms)
       const targetMs = timePerImage * 1000;
+      // 进度增量 = (经过时间 * 倍速 / 目标时间) * 100
       const increment = ((delta * currentMultiplier) / targetMs) * 100;
       const newProgress = progress + increment;
 
@@ -121,7 +133,7 @@ const ModelGrid = ({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isRunning, timePerImage]); // 移除 speedMultiplier 依赖，防止调节速度时重置
+  }, [isRunning, timePerImage]);
 
   // 浅色主题样式
   const styles = {
@@ -245,7 +257,7 @@ const ModelGrid = ({
           const isWaiting = idx > currentIndex;
 
           // 图片路径逻辑
-          const imgSrc = `${imageFolder}/${idx + 1}.jpg`; // 假设图片是 1.png, 2.png...
+          const imgSrc = `${imageFolder}/${idx + 1}.png`;
 
           return (
             <div key={idx} style={styles.cell}>
@@ -295,7 +307,11 @@ const ModelGrid = ({
 
 export default function SpeedComparison() {
   const [isRunning, setIsRunning] = useState(false);
-  const [multiplier, setMultiplier] = useState(50);
+  const [nfe, setNfe] = useState(2); // Default to 2 NFE
+
+  // 根据选择的 NFE 确定 Ours 模型的时间和图片路径
+  const oursTime = nfe === 2 ? SPEEDS.OURS_2_NFE : SPEEDS.OURS_4_NFE;
+  const oursFolder = `demo/ours_nfe_${nfe}`;
 
   const controlsStyle = {
     display: 'flex',
@@ -306,6 +322,20 @@ export default function SpeedComparison() {
     gap: '15px',
   };
 
+  const nfeButtonStyle = (value) => ({
+    padding: '0 12px',
+    height: '28px',
+    lineHeight: '28px',
+    fontSize: '0.8rem',
+    cursor: 'pointer',
+    border: 'none',
+    background: nfe === value ? '#333' : 'transparent',
+    color: nfe === value ? '#fff' : '#666',
+    fontWeight: nfe === value ? '600' : '400',
+    transition: 'all 0.2s',
+    borderRadius: '14px',
+  });
+
   return (
     <div className="uk-section" style={{ background: '#ffffff' }}>
       <div className="uk-container uk-container-large">
@@ -313,7 +343,7 @@ export default function SpeedComparison() {
           className="uk-text-bold uk-heading-line uk-text-center"
           style={{ color: '#333', marginBottom: '40px' }}
         >
-          <span>Generation Speed Comparison</span>
+          <span>Generation Speed Comparison (1328×1328)</span>
         </h2>
 
         <div style={controlsStyle}>
@@ -344,51 +374,70 @@ export default function SpeedComparison() {
 
           {/* Controls */}
           <div className="uk-flex uk-flex-middle" style={{ gap: '15px' }}>
+            {/* NFE Selector */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '5px',
                 background: '#fff',
-                padding: '6px 15px',
+                padding: '4px',
                 borderRadius: '30px',
                 border: '1px solid #e5e5e5',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
               }}
             >
-              <FaTachometerAlt style={{ color: '#888' }} />
-              <span
+              <div
                 style={{
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                  color: '#555',
+                  display: 'flex',
+                  alignItems: 'center',
+                  paddingLeft: '10px',
+                  paddingRight: '5px',
+                  gap: '6px',
                 }}
               >
-                Speed
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="100"
-                step="1"
-                value={multiplier}
-                onChange={(e) => setMultiplier(Number(e.target.value))}
-                className="uk-range"
-                style={{ width: '100px', margin: 0, height: '4px' }}
-              />
-              <span
+                <FaCogs style={{ color: '#888', fontSize: '0.9em' }} />
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    color: '#555',
+                  }}
+                >
+                  NFE
+                </span>
+              </div>
+              <div
                 style={{
-                  fontFamily: 'monospace',
-                  minWidth: '30px',
-                  color: '#333',
-                  fontSize: '0.9rem',
+                  background: '#f5f5f5',
+                  borderRadius: '15px',
+                  padding: '2px',
+                  display: 'flex',
                 }}
               >
-                {multiplier}x
-              </span>
+                <button
+                  onClick={() => {
+                    setIsRunning(false);
+                    setNfe(2);
+                  }}
+                  style={nfeButtonStyle(2)}
+                >
+                  2
+                </button>
+                <button
+                  onClick={() => {
+                    setIsRunning(false);
+                    setNfe(4);
+                  }}
+                  style={nfeButtonStyle(4)}
+                >
+                  4
+                </button>
+              </div>
             </div>
 
+            {/* Start/Reset Button */}
             <button
               onClick={() => setIsRunning(!isRunning)}
               className="uk-button"
@@ -415,7 +464,7 @@ export default function SpeedComparison() {
                 </>
               ) : (
                 <>
-                  <FaPlay /> Start Demo
+                  <FaPlay /> Start (Click Me!)
                 </>
               )}
             </button>
@@ -430,22 +479,22 @@ export default function SpeedComparison() {
             <ModelGrid
               title="Qwen-Image 🦥"
               subTitle="Multi-step (50×2 NFEs)"
-              timePerImage={20}
+              timePerImage={SPEEDS.QWEN}
               isRunning={isRunning}
-              speedMultiplier={multiplier}
+              speedMultiplier={DEFAULT_SPEED_MULTIPLIER}
               baseColor="#1e87f0" // Blue
               imageFolder="demo/qwen"
             />
           </div>
           <div>
             <ModelGrid
-              title="Qwen-Image-TwinFlow 🚀"
-              subTitle="Few-step (4 NFEs)"
-              timePerImage={2}
+              title={`TwinFlow-Qwen-Image 🚀🚀🚀`}
+              subTitle={`Few-step (${nfe} NFEs)`}
+              timePerImage={oursTime}
               isRunning={isRunning}
-              speedMultiplier={multiplier}
+              speedMultiplier={DEFAULT_SPEED_MULTIPLIER}
               baseColor="#4caf50" // Green
-              imageFolder="demo/ours"
+              imageFolder={oursFolder}
             />
           </div>
         </div>

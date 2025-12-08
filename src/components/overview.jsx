@@ -17,6 +17,12 @@ export default class Overview extends React.Component {
           className="uk-align-center uk-responsive-width"
           alt=""
         />
+        {/* 新增：如果存在 teaserCaption，则显示它 */}
+        {this.props.teaserCaption && (
+          <p className="uk-text-center uk-text-meta uk-margin-small-top">
+            {this.props.teaserCaption}
+          </p>
+        )}
         <h2 className="uk-text-bold uk-heading-line uk-text-center">
           <span>Abstract</span>
         </h2>
