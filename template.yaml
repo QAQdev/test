@@ -68,6 +68,9 @@ abstract: |
   With just 1-NFE, our approach matches the performance of the original 100-NFE model on both the GenEval and DPG-Bench benchmarks, reducing computational cost by 100× with minor quality degradation.
 
 body:
+  - title: News
+  - text: |
+      - We release **TwinFlow-Qwen-Image-v1.0!** And we are also working on **Z-Image-Turbo to make it more faster!**
   - title: Overview
   - text: |
       ### **The Trilemma of Few-Step Generation**
@@ -119,33 +122,35 @@ body:
       | DMD          | Generator (20B), Teacher (20B), Fake score (LoRA, ~420M)       | Fake score as LoRA & Small batch size         | 1          | 0.81              | 84.31                | 0.47 |
       | sCM (JVP-free)           | 20B       | JVP through finite differences / Special JVP kernels            | 8          | 0.60           | 85.54            | 0.45 |
       | MeanFlow  (JVP-free)     | 20B       | JVP through finite differences / Special JVP kernels            | 8          | 0.49 | 83.81 | 0.37 |
+      | **TwinFlow**          | **20B**       | **No tradeoffs**            | **1**          | **0.85**           | **85.44**            | **0.51** |
+      | **TwinFlow**          | **20B**       | **No tradeoffs**            | **2**          | **0.86**           | **86.35**            | **0.55** |
       | **TwinFlow (longer training)**          | **20B**       | **No tradeoffs**            | **1**          | **0.89**           | **87.54**            | **0.57** |
       | **TwinFlow (longer training)**          | **20B**       | **No tradeoffs**            | **2**          | **0.90**           | **87.80**            | **0.59** |
 
-  - title: More examples
-    text: |
-      ### Mediafile Path
-      Files in `public/` can be referenced directly: `<img src="001.jpg" />`
+  # - title: More examples
+  #   text: |
+  #     ### Mediafile Path
+  #     Files in `public/` can be referenced directly: `<img src="001.jpg" />`
 
-      </div>
-      <div uk-slideshow="animation: push">
-        <div class="uk-position-relative uk-visible-toggle uk-light" tabindex="-1">
-          <div class="uk-slideshow-items">
-            <div>
-              <img src="001.jpg" alt="" uk-cover>
-            </div>
-            <div>
-              <img src="002.jpg" alt="" uk-cover>
-            </div>
-            <div>
-              <img src="003.jpg" alt="" uk-cover>
-            </div>
-          </div>
-          <a class="uk-position-center-left uk-position-small uk-hidden-hover" href uk-slidenav-previous uk-slideshow-item="previous"></a>
-          <a class="uk-position-center-right uk-position-small uk-hidden-hover" href uk-slidenav-next uk-slideshow-item="next"></a>
-        </div>
-        <ul class="uk-slideshow-nav uk-dotnav uk-flex-center uk-margin"></ul>
-      </div>
+  #     </div>
+  #     <div uk-slideshow="animation: push">
+  #       <div class="uk-position-relative uk-visible-toggle uk-light" tabindex="-1">
+  #         <div class="uk-slideshow-items">
+  #           <div>
+  #             <img src="001.jpg" alt="" uk-cover>
+  #           </div>
+  #           <div>
+  #             <img src="002.jpg" alt="" uk-cover>
+  #           </div>
+  #           <div>
+  #             <img src="003.jpg" alt="" uk-cover>
+  #           </div>
+  #         </div>
+  #         <a class="uk-position-center-left uk-position-small uk-hidden-hover" href uk-slidenav-previous uk-slideshow-item="previous"></a>
+  #         <a class="uk-position-center-right uk-position-small uk-hidden-hover" href uk-slidenav-next uk-slideshow-item="next"></a>
+  #       </div>
+  #       <ul class="uk-slideshow-nav uk-dotnav uk-flex-center uk-margin"></ul>
+  #     </div>
 
 projects: # relevant projects
   - title: 'RCGM: Any-step Generation via N-th Order Recursive Consistent Velocity Field Estimation'

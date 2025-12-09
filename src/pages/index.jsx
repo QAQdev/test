@@ -137,7 +137,7 @@ class Template extends React.Component {
           <Citation bibtex={data.bibtex} />
           <Projects projects={data.projects} />
         </div>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     );
   }
